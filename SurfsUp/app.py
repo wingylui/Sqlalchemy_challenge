@@ -30,34 +30,31 @@ def home():
     return (
         "<h1>Home Page</h1>"
         "Available Routes:<br/>"
-        "/api/v1.0/precipitation/date:YYYY-MM-DD<br/>"
+        "/api/v1.0/precipitation<br/>"
         "/api/v1.0/stations<br/>"
         "/api/v1.0/tobs<br/>"
         "/api/v1.0/start_date:YYYY-MM-DD<br/>"
         "/api/v1.0/start_date:YYYY-MM-DD/end_date:YYYY-MM-DD"
     )
 
-@app.route("/api/v1.0/precipitation/<input_date>")
-def precipitation(input_date):
+@app.route("/api/v1.0/precipitation/")
+def precipitation():
     # create session (link) from Python to the database
     session = Session(bind= engine)
 
     # query precipitation results by the input date
-    results = session.query(measurement.prcp).filter(measurement.date == input_date).all()
+    # results = session.query(measurement.prcp).filter(measurement.date == input_date).all()
+    results = session.query(measurement.date, measurement.prcp).\
+        filter(measurement.date.between("2016-08-23","2017-08-23"))
     session.close()
-
-    # put all the results into a list and then create a dictionary to hold all the output
-    prcp_list = []
-    for prcp in results:
-        prcp_list.append(prcp[0])
     
     # creating a dictionary to hold all the output
-    precipitation_dic  = {
-        "date" : input_date,
-        "precipitation" : prcp_list
-    }
+    precipitation_dic = {}
+    for date, prcp in results:
+        precipitation_dic[date] = prcp
 
     return jsonify(precipitation_dic)
+
 
 @app.route("/api/v1.0/stations")
 def stations():
